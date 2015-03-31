@@ -586,6 +586,23 @@ lws_client_interpret_server_handshake(struct libwebsocket_context *context,
 		if (strcmp(p, context->protocols[n].name) == 0) {
 			wsi->protocol = &context->protocols[n];
 			break;
+		} else {
+			int found = 0;
+			const char* nameptr = context->protocols[n].name;
+			char* sp = strstr(nameptr, p);
+			while (sp && !found) {
+				if ((sp[len] == ',' || sp[len] == '\0')
+						&& (sp == nameptr
+							|| (sp > nameptr
+								&& (sp[-1] == ',' || sp[-1] == ' ')))) {
+					wsi->protocol = &context->protocols[n];
+					found = 1;
+					break;
+				}
+				sp = strstr(sp + 1, p);
+			}
+			if (found)
+				break;
 		}
 		n++;
 	}
